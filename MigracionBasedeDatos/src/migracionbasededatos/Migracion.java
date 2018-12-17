@@ -523,10 +523,24 @@ public class Migracion extends javax.swing.JFrame {
     }//GEN-LAST:event_tf_instanciaOrigenActionPerformed
 
     private void btn_probarOrigenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_probarOrigenActionPerformed
-        if (Migracion.getConnection() != null) {
-            System.out.println("CONEXION EXITOSA");
-        }
+
     }//GEN-LAST:event_btn_probarOrigenActionPerformed
+
+    public static void RevisarBitacora(String nombreTabla) {
+        int copiado_l;
+        String nombretabla_l, valores_l, nombretable_l, operaciones_l;
+        Statement stmt1, stmt2;
+        try {
+            stmt1 = connectionsqlserver.createStatement();
+            ResultSet rsSQL1 = stmt1.executeQuery("select * from bitacora where nombretabla=" + nombreTabla);
+            copiado_l = rsSQL1.getInt("Copiado");
+            nombretabla_l = rsSQL1.getString("NombreTabla");
+            valores_l = rsSQL1.getString("Valores");
+            operaciones_l = rsSQL1.getString("Operacion");
+            ActuaizarDatos(copiado_l, nombreTabla, valores_l, operaciones_l, nombreTabla);
+        } catch (Exception e) {
+        }
+    }
 
     public static void ActuaizarDatos(int copiada, String nombretabla, String valores, String operaciones, String nombretable) {
         Object datosentrada[] = new Object[100];
@@ -563,7 +577,7 @@ public class Migracion extends javax.swing.JFrame {
                         }
                         stmt3.execute("update bitacora set copiado=1 where nombretabla=" + nombretabla);
                     }
-                } else if (nombretabla.equals("PC")) {
+                } else if (nombretable.equals("PC")) {
                     ResultSet rsSQL2 = stmt1.executeQuery("select * from PC where code =" + valores);
                     while (rsSQL2.next()) {
                         datosentrada[0] = rsSQL2.getInt("code");
@@ -582,31 +596,75 @@ public class Migracion extends javax.swing.JFrame {
                         stmt2.executeUpdate("insert into PC(code,model,speed,ram,hd,cd,price) values('" + datosentrada[0] + "','"
                                 + datosentrada[1] + "','" + datosentrada[2] + "','" + datosentrada[3] + "','"
                                 + datosentrada[4] + "','" + datosentrada[5] + "','" + datosentrada[6] + "');");
+                        stmt3.execute("update bitacora set copiado=1 where nombretabla=" + valores);
                     }
+                } else if (nombretable.equals("Printer")) {
+                    ResultSet rsSQL2 = stmt1.executeQuery("select * from Printer where code=" + valores);
+                    while (rsSQL2.next()) {
+                        datosentrada[0] = rsSQL2.getInt("code");
+                        System.out.println(datosentrada[0]);
+                        datosentrada[1] = rsSQL2.getString("model");
+                        System.out.println(datosentrada[1]);
+                        datosentrada[2] = rsSQL2.getString("color");
+                        System.out.println(datosentrada[2]);
+                        datosentrada[3] = rsSQL2.getString("type");
+                        System.out.println(datosentrada[3]);
+                        datosentrada[4] = rsSQL2.getDouble("price");
+                        System.out.println(datosentrada[4]);
+                        stmt2.executeUpdate("insert into Printer(code,model,color,type,price) values('" + datosentrada[0] + "','"
+                                + datosentrada[1] + "','" + datosentrada[2] + "','" + datosentrada[3] + "','"
+                                + datosentrada[4] + "');");
+                        stmt3.execute("update bitacora set copiado=1 where nombretabla=" + valores);
+                    }
+                } else if (nombretable.equals("Product")) {
+                    ResultSet rsSQL2 = stmt1.executeQuery("select * from Printer where model=" + valores);
+                    while (rsSQL2.next()) {
+                        datosentrada[0] = rsSQL2.getString("maker");
+                        System.out.println(datosentrada[0]);
+                        datosentrada[1] = rsSQL2.getString("model");
+                        System.out.println(datosentrada[1]);
+                        datosentrada[2] = rsSQL2.getString("type");
+                        System.out.println(datosentrada[2]);
+                        stmt2.executeUpdate("insert into Product(maker,model,type) values('" + datosentrada[0] + "','"
+                                + datosentrada[1] + "','" + datosentrada[2] + "');");
+                        stmt3.execute("update bitacora set copiado=1 wher nombretabla=" + valores);
+                    }
+                } else if (copiada == 0 && operaciones.equals("delete")) {
+                    if (nombretable.equals("Laptop")) {
+                        stmt2.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
+                        stmt2.executeUpdate("ALTER TABLE region DISABLE KEYS;");
+                        stmt2.executeUpdate("DELETE FROM region where code =" + valores + ";");
+                        stmt2.executeUpdate("ALTER TABLE region ENABLE KEYS;");
+                        stmt2.executeUpdate("SET FOREIGN_KEY_CHECKS=1;");
+                        stmt3.execute("Update TB_Bitacora set Copied = 1 where nombretabla =" + valores);
+                    } else if (nombretable.equals("PC")) {
+                        stmt2.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
+                        stmt2.executeUpdate("ALTER TABLE region DISABLE KEYS;");
+                        stmt2.executeUpdate("DELETE FROM region where code =" + valores + ";");
+                        stmt2.executeUpdate("ALTER TABLE region ENABLE KEYS;");
+                        stmt2.executeUpdate("SET FOREIGN_KEY_CHECKS=1;");
+                        stmt3.execute("Update TB_Bitacora set Copied = 1 where nombretabla =" + valores);
+                    } else if (nombretable.equals("Printer")) {
+                        stmt2.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
+                        stmt2.executeUpdate("ALTER TABLE region DISABLE KEYS;");
+                        stmt2.executeUpdate("DELETE FROM region where code =" + valores + ";");
+                        stmt2.executeUpdate("ALTER TABLE region ENABLE KEYS;");
+                        stmt2.executeUpdate("SET FOREIGN_KEY_CHECKS=1;");
+                        stmt3.execute("Update TB_Bitacora set Copied = 1 where nombretabla =" + valores);
+                    } else if (nombretable.equals("Product")) {
+                        stmt2.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
+                        stmt2.executeUpdate("ALTER TABLE region DISABLE KEYS;");
+                        stmt2.executeUpdate("DELETE FROM region where model  =" + valores + ";");
+                        stmt2.executeUpdate("ALTER TABLE region ENABLE KEYS;");
+                        stmt2.executeUpdate("SET FOREIGN_KEY_CHECKS=1;");
+                        stmt3.execute("Update TB_Bitacora set Copied = 1 where nombretabla =" + valores);
+                    }
+
                 }
             }
         } catch (SQLException e) {
+            e.printStackTrace();
         }
-    }
-
-    public static Connection getConnection() {
-        Connection connection = null;
-        String dbname = "northwind";
-        String user = "andreaescobarb";
-        String pass = "gatsby";
-        try {
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            String connectionBD = "jdbc:sqlserver://localhost;databaseName="
-                    + dbname + ";user=" + user + ";password=" + pass + ";";
-            connection = DriverManager.getConnection(connectionBD);
-        } catch (ClassNotFoundException e) {
-            System.out.println("Error: " + e.getMessage());
-        } catch (SQLException e) {
-            System.out.println("Error: " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-        return connection;
     }
 
     /**
